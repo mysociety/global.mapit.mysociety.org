@@ -1,0 +1,14 @@
+libgdal1
+memcached
+python-virtualenv
+libapache2-mod-wsgi
+
+python-dev
+libssl-dev
+libffi-dev
+
+python-psycopg2
+python-shapely
+python-yaml
+python-memcache
+python-gdal
