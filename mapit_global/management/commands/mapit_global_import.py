@@ -80,13 +80,20 @@ class Command(LabelCommand):
 
     def add_arguments(self, parser):
         super(Command, self).add_arguments(parser)
+        parser.add_argument(
+            '--alter-current-generation',
+            action='store_true',
+            help='Rather than importing to a new inactive generation, update the current, active generation')
         parser.add_argument('--commit', action='store_true', dest='commit', help='Actually update the database')
 
     def handle_label(self, directory_name, **options):
         current_generation = Generation.objects.current()
-        new_generation = Generation.objects.new()
-        if not new_generation:
-            raise Exception("No new generation to be used for import!")
+        if options['alter_current_generation']:
+            new_generation = current_generation
+        else:
+            new_generation = Generation.objects.new()
+            if not new_generation:
+                raise Exception("No new generation to be used for import!")
 
         if not os.path.isdir(directory_name):
             raise Exception("'%s' is not a directory" % (directory_name,))
@@ -250,6 +257,11 @@ class Command(LabelCommand):
                             was_the_same_in_current = True
                         else:
                             verbose('    In the current generation, the boundary was different')
+                            if options['alter_current_generation']:
+                                msg = 'The area for {code} already existed with a different boundary in ' \
+                                      'the current generation; using --alter-current-generation to import ' \
+                                      'this data would result in a duplicate area in {generation}'
+                                raise Exception(msg.format(code=osm_code, generation=current_generation))
 
                 if was_the_same_in_current:
                     # Extend the high generation to the new one:
