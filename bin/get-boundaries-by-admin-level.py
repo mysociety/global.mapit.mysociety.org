@@ -17,8 +17,10 @@ from boundaries import (
     UnclosedBoundariesException)
 from generate_kml import get_kml_for_osm_element
 
+
 def replace_slashes(s):
     return re.sub(r'/', '_', s)
+
 
 mapit_type_to_tags = {
     # Administrative boundaries, each with a numbered admin_level:
@@ -57,7 +59,6 @@ if __name__ == '__main__':
 
     dir = os.path.dirname(os.path.abspath(__file__))
     data_dir = os.path.join(dir, '..', 'data')
-
 
     if start_mapit_type not in mapit_type_to_tags.keys():
         print("The type %s isn't known" % (start_mapit_type,), file=sys.stderr)

@@ -41,6 +41,7 @@ def tuple_mean(index, tuples):
 
     return sum(t[index] for t in tuples) / float(len(tuples))
 
+
 # Get a list of coordinates for capital cities
 # The filter for only selecting current countries (as opposed to
 # historical ones) was from here:
