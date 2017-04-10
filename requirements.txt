@@ -1,2 +1,7 @@
+beautifulsoup4==4.5.3
 Django==1.8.17
+lxml==3.7.3
 -e git://github.com/mysociety/mapit.git@master#egg=django-mapit
+pytest==3.0.7
+requests==2.13.0
+SPARQLWrapper==1.8.0
