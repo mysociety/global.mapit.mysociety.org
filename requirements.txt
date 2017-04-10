@@ -1,5 +1,6 @@
 beautifulsoup4==4.5.3
 Django==1.8.17
+flake8==3.3.0
 lxml==3.7.3
 -e git://github.com/mysociety/mapit.git@master#egg=django-mapit
 pytest==3.0.7
