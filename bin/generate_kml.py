@@ -351,6 +351,9 @@ def get_kml_for_osm_element(element_type, element_id):
             <Data name="boundary">
               <value>administrative</value>
             </Data>
+            <Data name="designation">
+              <value>non_metropolitan_district</value>
+            </Data>
             <Data name="name">
               <value>South Cambridgeshire</value>
             </Data>
@@ -362,6 +365,9 @@ def get_kml_for_osm_element(element_type, element_id):
             </Data>
             <Data name="type">
               <value>boundary</value>
+            </Data>
+            <Data name="wikidata">
+              <value>Q969203</value>
             </Data>
             <Data name="wikipedia">
               <value>en:South Cambridgeshire</value>
