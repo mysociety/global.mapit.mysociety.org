@@ -17,18 +17,6 @@ from boundaries import (
     UnclosedBoundariesException)
 from generate_kml import get_kml_for_osm_element
 
-if len(sys.argv) > 2:
-    print("Usage: %s [FIRST-MAPIT_TYPE]" % (sys.argv[0],), file=sys.stderr)
-    sys.exit(1)
-
-start_mapit_type = 'O02'
-if len(sys.argv) == 2:
-    start_mapit_type = sys.argv[1]
-
-dir = os.path.dirname(os.path.abspath(__file__))
-data_dir = os.path.join(dir, '..', 'data')
-
-
 def replace_slashes(s):
     return re.sub(r'/', '_', s)
 
@@ -57,67 +45,81 @@ mapit_type_to_tags = {
     'OWA': {'boundary': 'political', 'political_division': 'ward'},
 }
 
-if start_mapit_type not in mapit_type_to_tags.keys():
-    print("The type %s isn't known" % (start_mapit_type,), file=sys.stderr)
-    print("The known types are:", file=sys.stderr)
-    for mapit_type in sorted(mapit_type_to_tags.keys()):
-        print(" ", mapit_type, file=sys.stderr)
-    sys.exit(1)
+if __name__ == '__main__':
 
-reached_first_mapit_type = False
+    if len(sys.argv) > 2:
+        print("Usage: %s [FIRST-MAPIT_TYPE]" % (sys.argv[0],), file=sys.stderr)
+        sys.exit(1)
 
-for mapit_type, required_tags in sorted(mapit_type_to_tags.items()):
+    start_mapit_type = 'O02'
+    if len(sys.argv) == 2:
+        start_mapit_type = sys.argv[1]
 
-    if not reached_first_mapit_type:
-        if mapit_type == start_mapit_type:
-            reached_first_mapit_type = True
-        else:
-            print("Haven't reached the first MapIt type, skipping", mapit_type)
-            continue
+    dir = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(dir, '..', 'data')
 
-    print("Fetching data for MapIt type", mapit_type)
 
-    file_basename = mapit_type + ".xml"
-    output_directory = os.path.join(data_dir, "cache-with-political")
-    query = get_query_relations_and_ways(required_tags)
-    data = get_osm3s(query.encode('utf-8'))
+    if start_mapit_type not in mapit_type_to_tags.keys():
+        print("The type %s isn't known" % (start_mapit_type,), file=sys.stderr)
+        print("The known types are:", file=sys.stderr)
+        for mapit_type in sorted(mapit_type_to_tags.keys()):
+            print(" ", mapit_type, file=sys.stderr)
+        sys.exit(1)
 
-    level_directory = os.path.join(output_directory, mapit_type)
-    mkdir_p(level_directory)
+    reached_first_mapit_type = False
 
-    def handle_top_level_element(element_type, element_id, tags):
+    for mapit_type, required_tags in sorted(mapit_type_to_tags.items()):
 
-        for required_key, required_value in required_tags.items():
+        if not reached_first_mapit_type:
+            if mapit_type == start_mapit_type:
+                reached_first_mapit_type = True
+            else:
+                print("Haven't reached the first MapIt type, skipping", mapit_type)
+                continue
 
-            if required_key not in tags:
-                return
-            if tags[required_key] != required_value:
-                return
+        print("Fetching data for MapIt type", mapit_type)
 
-        name = get_name_from_tags(tags, element_type, element_id)
+        file_basename = mapit_type + ".xml"
+        output_directory = os.path.join(data_dir, "cache-with-political")
+        query = get_query_relations_and_ways(required_tags)
+        data = get_osm3s(query.encode('utf-8'))
 
-        print("Considering admin boundary:", smart_str(name))
+        level_directory = os.path.join(output_directory, mapit_type)
+        mkdir_p(level_directory)
 
-        try:
+        def handle_top_level_element(element_type, element_id, tags):
 
-            basename = "%s-%s-%s" % (element_type,
-                                     element_id,
-                                     replace_slashes(name))
+            for required_key, required_value in required_tags.items():
 
-            filename = os.path.join(level_directory, "%s.kml" % (basename,))
-
-            if not os.path.exists(filename):
-
-                kml, _ = get_kml_for_osm_element(element_type, element_id)
-                if not kml:
-                    print("      No data found for %s %s" % (element_type, element_id))
+                if required_key not in tags:
+                    return
+                if tags[required_key] != required_value:
                     return
 
-                print("      Writing KML to", smart_str(filename))
-                with open(filename, "w") as fp:
-                    fp.write(kml)
+            name = get_name_from_tags(tags, element_type, element_id)
 
-        except UnclosedBoundariesException:
-            print("      ... ignoring unclosed boundary")
+            print("Considering admin boundary:", smart_str(name))
 
-    parse_xml_minimal(data, handle_top_level_element)
+            try:
+
+                basename = "%s-%s-%s" % (element_type,
+                                         element_id,
+                                         replace_slashes(name))
+
+                filename = os.path.join(level_directory, "%s.kml" % (basename,))
+
+                if not os.path.exists(filename):
+
+                    kml, _ = get_kml_for_osm_element(element_type, element_id)
+                    if not kml:
+                        print("      No data found for %s %s" % (element_type, element_id))
+                        return
+
+                    print("      Writing KML to", smart_str(filename))
+                    with open(filename, "w") as fp:
+                        fp.write(kml)
+
+            except UnclosedBoundariesException:
+                print("      ... ignoring unclosed boundary")
+
+        parse_xml_minimal(data, handle_top_level_element)

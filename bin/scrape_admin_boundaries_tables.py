@@ -9,14 +9,6 @@ from bs4 import BeautifulSoup
 from django.utils.six.moves import urllib
 from django.utils.encoding import smart_str
 
-url = "http://wiki.openstreetmap.org/wiki/Tag:boundary%3Dadministrative"
-
-f = urllib.request.urlopen(url)
-data = f.read()
-f.close()
-
-soup = BeautifulSoup(data, "lxml")
-
 
 def strip_all_tags(element):
     for br in element.find_all('br'):
@@ -45,34 +37,44 @@ def make_missing_none(s):
         return s
 
 
-country_to_admin_levels = {}
+if __name__ == '__main__':
 
-for table in soup.find_all('table', 'wikitable'):
-    rows = table.findAll('tr', recursive=False)
-    for row in rows:
-        ths = row.findAll('th', recursive=False)
-        if ths:
-            headers = [th.string.strip() for th in ths]
-            continue
-        tds = row.findAll('td', recursive=False)
-        if len(tds) <= 2:
-            continue
-        country_name = get_country_name(strip_all_tags(tds[0]))
-        if len(tds) != len(headers):
-            print("Warning: Ignoring row of unexpected length", len(tds), file=sys.stderr)
-            continue
-        levels = [None]
-        levels += [make_missing_none(strip_all_tags(td))
-                   for td in tds[1:]]
-        if country_name in country_to_admin_levels:
-            print("Warning: Overwriting previous information for country '%s'" % (country_name,), file=sys.stderr)
-        country_to_admin_levels[country_name] = levels
+    url = "http://wiki.openstreetmap.org/wiki/Tag:boundary%3Dadministrative"
 
-for country_name, levels in sorted(country_to_admin_levels.items()):
-    print("####", smart_str(country_name))
-    for i, s in enumerate(levels):
-        print("---- level", i)
-        if s:
-            print("  " + smart_str(s))
-        else:
-            print("  [No information]")
+    f = urllib.request.urlopen(url)
+    data = f.read()
+    f.close()
+
+    soup = BeautifulSoup(data, "lxml")
+
+    country_to_admin_levels = {}
+
+    for table in soup.find_all('table', 'wikitable'):
+        rows = table.findAll('tr', recursive=False)
+        for row in rows:
+            ths = row.findAll('th', recursive=False)
+            if ths:
+                headers = [th.string.strip() for th in ths]
+                continue
+            tds = row.findAll('td', recursive=False)
+            if len(tds) <= 2:
+                continue
+            country_name = get_country_name(strip_all_tags(tds[0]))
+            if len(tds) != len(headers):
+                print("Warning: Ignoring row of unexpected length", len(tds), file=sys.stderr)
+                continue
+            levels = [None]
+            levels += [make_missing_none(strip_all_tags(td))
+                       for td in tds[1:]]
+            if country_name in country_to_admin_levels:
+                print("Warning: Overwriting previous information for country '%s'" % (country_name,), file=sys.stderr)
+            country_to_admin_levels[country_name] = levels
+
+    for country_name, levels in sorted(country_to_admin_levels.items()):
+        print("####", smart_str(country_name))
+        for i, s in enumerate(levels):
+            print("---- level", i)
+            if s:
+                print("  " + smart_str(s))
+            else:
+                print("  [No information]")
