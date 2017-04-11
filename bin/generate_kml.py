@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 import sys
 from lxml import etree
 from shapely.geometry import Polygon
@@ -88,7 +90,7 @@ def group_boundaries_into_polygons(outer_ways, inner_ways):
     >>> inners = [hole_in_big_square]
     >>> grouped = group_boundaries_into_polygons(outers, inners)
     >>> for p in grouped:
-    ...     print p
+    ...     print(p)
     {'outer': [Way(id="1", nodes=5)], 'inner': [Way(id="2", nodes=5)]}
     {'outer': [Way(id="3", nodes=5)], 'inner': []}
 
@@ -158,12 +160,12 @@ def kml_string(folder_name,
     ...                                   Node('20', latitude=51, longitude=-2),
     ...                                   Node('21', latitude=51, longitude=-3),
     ...                                   Node('18', latitude=52, longitude=-3)])
-    >>> print kml_string('Example Folder',
+    >>> print(kml_string('Example Folder',
     ...                  'Example Placemark',
     ...                  {"some key": "some value",
     ...                   "foo": "bar"},
     ...                  [big_square, isolated_square],
-    ...                  [hole_in_big_square]),
+    ...                  [hole_in_big_square]), end='')
     <?xml version='1.0' encoding='utf-8'?>
     <kml xmlns="http://earth.google.com/kml/2.1">
       <Folder>
@@ -337,7 +339,7 @@ def get_kml_for_osm_element(element_type, element_id):
     Cambridgeshire (which has a hole in it, which is Cambridge) with:
 
     >>> kml, bbox = get_kml_for_osm_element('relation', '295353')
-    >>> print kml, #doctest: +ELLIPSIS
+    >>> print(kml, end='') #doctest: +ELLIPSIS
     <?xml version='1.0' encoding='utf-8'?>
     <kml xmlns="http://earth.google.com/kml/2.1">
       <Folder>
