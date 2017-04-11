@@ -31,7 +31,7 @@ from django.utils import six
 from django.utils.six.moves import urllib
 from django.utils.encoding import smart_str, smart_text
 
-import shapely
+import shapely.wkb
 
 from mapit.models import Area, Generation, Country, Type, Code, CodeType, NameType
 from mapit.management.command_utils import save_polygons, KML
