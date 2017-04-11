@@ -13,6 +13,7 @@
 # Copyright (c) 2011, 2012 UK Citizens Online Democracy. All rights reserved.
 # Email: mark@mysociety.org; WWW: http://www.mysociety.org
 
+import codecs
 from collections import namedtuple
 import csv
 from glob import glob
@@ -26,6 +27,7 @@ from django.core.management.base import LabelCommand
 # from django.contrib.gis.utils import LayerMapping
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.db.models import Collect
+from django.utils import six
 from django.utils.six.moves import urllib
 from django.utils.encoding import smart_str, smart_text
 
@@ -62,8 +64,14 @@ def get_iso639_2_table():
     result = []
     url = "http://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt"
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-    for row in csv.reader(urllib.request.urlopen(req), delimiter='|'):
-        row = [cell.decode('utf-8-sig') for cell in row]
+    datastream = urllib.request.urlopen(req)
+    if six.PY2:
+        csv_source = datastream
+    else:
+        csv_source = codecs.iterdecode(datastream, 'utf-8')
+    for row in csv.reader(csv_source, delimiter='|'):
+        if six.PY2:
+            row = [cell.decode('utf-8-sig') for cell in row]
         bibliographic = [row[0], row[2], row[3], row[4]]
         result_row = LanguageCodes._make(make_missing_none(s) for s in bibliographic)
         result.append(result_row)
@@ -251,8 +259,8 @@ class Command(LabelCommand):
                     else:
                         # Simplify it to make sure the polygons are valid:
                         previous_geos_geometry = shapely.wkb.loads(
-                            str(previous_geos_geometry.simplify(tolerance=0).ewkb))
-                        new_geos_geometry = shapely.wkb.loads(str(g.geos.simplify(tolerance=0).ewkb))
+                            bytes(previous_geos_geometry.simplify(tolerance=0).ewkb))
+                        new_geos_geometry = shapely.wkb.loads(bytes(g.geos.simplify(tolerance=0).ewkb))
                         if previous_geos_geometry.almost_equals(new_geos_geometry, decimal=7):
                             was_the_same_in_current = True
                         else:
