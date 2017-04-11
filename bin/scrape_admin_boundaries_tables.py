@@ -4,9 +4,10 @@ from __future__ import print_function
 
 import re
 import sys
-from bs4 import BeautifulSoup
 
-from django.utils.six.moves import urllib
+from bs4 import BeautifulSoup
+import requests
+
 from django.utils.encoding import smart_str
 
 
@@ -41,9 +42,8 @@ if __name__ == '__main__':
 
     url = "http://wiki.openstreetmap.org/wiki/Tag:boundary%3Dadministrative"
 
-    f = urllib.request.urlopen(url)
-    data = f.read()
-    f.close()
+    r = requests.get(url)
+    data = r.text
 
     soup = BeautifulSoup(data, "lxml")
 

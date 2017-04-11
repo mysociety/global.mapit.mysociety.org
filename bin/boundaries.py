@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import errno
+import requests
 import os
 import sys
 import xml.sax
@@ -16,7 +17,6 @@ import shutil  # noqa
 from tempfile import mkdtemp, NamedTemporaryFile  # noqa
 
 from django.utils.six import StringIO
-from django.utils.six.moves import urllib
 
 with open(os.path.join(
         os.path.dirname(__file__), '..', 'conf', 'general.yml')) as f:
@@ -117,11 +117,9 @@ def get_osm3s(query_xml):
 
 def get_remote(query_xml, filename):
     url = config['OVERPASS_SERVER']
-    values = {'data': query_xml}
-    encoded_values = urllib.parse.urlencode(values)
-    request = urllib.request.Request(url, encoded_values)
-    response = urllib.request.urlopen(request)
-    data = response.read()
+    r = requests.get(url, params={'data': query_xml})
+    r.raise_for_status()
+    data = r.content
     with open(filename, "w") as fp:
         fp.write(data)
     return data
