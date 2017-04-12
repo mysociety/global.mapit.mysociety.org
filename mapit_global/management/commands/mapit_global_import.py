@@ -28,9 +28,9 @@ from django.core.management.base import LabelCommand
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.db.models import Collect
 from django.utils import six
-from django.utils.six.moves import urllib
 from django.utils.encoding import smart_str, smart_text
 
+import requests
 import shapely.wkb
 
 from mapit.models import Area, Generation, Country, Type, Code, CodeType, NameType
@@ -63,12 +63,11 @@ def get_iso639_2_table():
 
     result = []
     url = "http://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt"
-    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-    datastream = urllib.request.urlopen(req)
+    r = requests.get(url, stream=True, headers={'User-Agent': 'Mozilla/5.0'})
     if six.PY2:
-        csv_source = datastream
+        csv_source = r.iter_lines()
     else:
-        csv_source = codecs.iterdecode(datastream, 'utf-8')
+        csv_source = codecs.iterdecode(r.iter_lines(), 'utf-8')
     for row in csv.reader(csv_source, delimiter='|'):
         if six.PY2:
             row = [cell.decode('utf-8-sig') for cell in row]
