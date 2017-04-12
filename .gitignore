@@ -8,8 +8,10 @@
 /data/cache
 
 /.cache
+/.coverage
 .sass-cache
 .venv
 .static
 /.tox
 .vagrant
+/htmlcov

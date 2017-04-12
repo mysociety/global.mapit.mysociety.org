@@ -4,6 +4,7 @@ flake8==3.3.0
 lxml==3.7.3
 -e git://github.com/mysociety/mapit.git@master#egg=django-mapit
 pytest==3.0.7
+pytest-cov==2.4.0
 pytest-django==3.1.2
 requests==2.13.0
 SPARQLWrapper==1.8.0
