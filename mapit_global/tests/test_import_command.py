@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from contextlib import contextmanager
+from mock import Mock, patch
 import os
 from os.path import join, dirname
 import re
@@ -92,6 +93,15 @@ def example_files(type_code, file_data):
         yield tmp_dir
 
 
+def fake_get(url, **kwargs):
+    if url != 'http://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt':
+        raise Exception("The URL {url} hasn't been faked")
+    local_filename = join(dirname(__file__), 'country-data', 'ISO-639-2_utf-8.txt')
+    fake_response = Mock()
+    fake_response.iter_lines.return_value = open(local_filename, 'rb')
+    return fake_response
+
+
 class ImportCommandTests(TestCase):
 
     def change_to_repo_root(self):
@@ -101,6 +111,11 @@ class ImportCommandTests(TestCase):
         # The import command actually changes directory, so make sure
         # we change back to the repository root before each test.
         self.change_to_repo_root()
+        # Make sure requests.get is patched in every tests in this class.
+        self.patcher = patch('mapit_global.management.commands.mapit_global_import.requests')
+        self.mock_requests = self.patcher.start()
+        self.mock_requests.get = fake_get
+        self.addCleanup(self.patcher.stop)
 
     def test_fixtures_loaded(self):
         call_command('loaddata', 'global.json')
