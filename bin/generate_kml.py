@@ -8,6 +8,10 @@ from lxml import etree
 from shapely.geometry import Polygon
 from boundaries import join_way_soup, fetch_osm_element, UnclosedBoundariesException
 
+# The following are only used by doctests, hence noqa
+from boundaries import fake_requests_get # noqa
+import requests # noqa
+from mock import patch #noqa
 
 def ways_overlap(a, b):
     """Determines if two Way objects represent overlapping polygons
@@ -338,7 +342,8 @@ def get_kml_for_osm_element(element_type, element_id):
     For example, we could fetch the boundary of the South
     Cambridgeshire (which has a hole in it, which is Cambridge) with:
 
-    >>> kml, bbox = get_kml_for_osm_element('relation', '295353')
+    >>> with patch.object(requests, 'get', side_effect=fake_requests_get):
+    ...     kml, bbox = get_kml_for_osm_element('relation', '295353')
     >>> print(kml.decode('utf-8'), end='') #doctest: +ELLIPSIS
     <?xml version='1.0' encoding='utf-8'?>
     <kml xmlns="http://earth.google.com/kml/2.1">
@@ -395,7 +400,8 @@ def get_kml_for_osm_element(element_type, element_id):
 
     If a relation can't be found, (None, None) is returned:
 
-    >>> get_kml_for_osm_element('relation', '100000000000')
+    >>> with patch.object(requests, 'get', side_effect=fake_requests_get):
+    ...     get_kml_for_osm_element('relation', '10000000000')
     (None, None)
     """
 

@@ -3,8 +3,11 @@
 from __future__ import print_function
 
 import errno
+from mock import Mock, patch # noqa
 import requests
 import os
+from os.path import dirname, join
+import re
 import sys
 import xml.sax
 from xml.sax.handler import ContentHandler
@@ -1582,8 +1585,9 @@ class OSMXMLParser(ContentHandler):
     ...     <member type="relation" ref="295353" role="example-subrelation"/>
     ...   </relation>
     ... </osm>'''
-    >>> parser = parse_xml_string(xml_requiring_fetch,
-    ...                           cache_directory=tmp_cache)
+    >>> with patch.object(requests, 'get', side_effect=fake_requests_get):
+    ...     parser = parse_xml_string(xml_requiring_fetch,
+    ...                               cache_directory=tmp_cache)
     >>> south_cambridgeshire_relation, fake_role = parser[0][0]
     >>> south_cambridgeshire_relation # doctest: +ELLIPSIS
     Relation(id="295353", members=...)
@@ -1593,8 +1597,9 @@ class OSMXMLParser(ContentHandler):
     Doing that again will be faster, since the results of the API will
     have been cached to disk, but still produce the same result:
 
-    >>> parser = parse_xml_string(xml_requiring_fetch,
-    ...                           cache_directory=tmp_cache)
+    >>> with patch.object(requests, 'get', side_effect=fake_requests_get):
+    ...     parser = parse_xml_string(xml_requiring_fetch,
+    ...                               cache_directory=tmp_cache)
     >>> south_cambridgeshire_relation, fake_role = parser[0][0]
     >>> south_cambridgeshire_relation # doctest: +ELLIPSIS
     Relation(id="295353", members=...)
@@ -1620,8 +1625,9 @@ class OSMXMLParser(ContentHandler):
 
     If fetching isn't allowed, we get the same result the first time:
 
-    >>> parser = parse_xml_string(xml_with_fictitious_refs,
-    ...                           cache_directory=tmp_cache)
+    >>> with patch.object(requests, 'get', side_effect=fake_requests_get):
+    ...     parser = parse_xml_string(xml_with_fictitious_refs,
+    ...                               cache_directory=tmp_cache)
     >>> for e in parser[0]:
     ...     print(e)
     Node(id="1000000000000", missing)
@@ -1936,13 +1942,15 @@ def fetch_osm_element(element_type, element_id, fetch_missing=True, verbose=Fals
     with:
 
     >>> tmp_cache = mkdtemp()
-    >>> fetch_osm_element("relation", "58446", cache_directory=tmp_cache)
+    >>> with patch.object(requests, 'get', side_effect=fake_requests_get):
+    ...     fetch_osm_element("relation", "58446", cache_directory=tmp_cache)
     Relation(id="58446", members=70)
 
     Or do the same, more verbosely, with:
 
     >>> tmp_cache2 = mkdtemp()
-    >>> fetch_osm_element("relation", "58446", verbose=True, cache_directory=tmp_cache2, visited=set())
+    >>> with patch.object(requests, 'get', side_effect=fake_requests_get):
+    ...     fetch_osm_element("relation", "58446", verbose=True, cache_directory=tmp_cache2, visited=set())
     fetch_osm_element(relation, 58446)
     Relation(id="58446", members=70)
 
@@ -1950,7 +1958,8 @@ def fetch_osm_element(element_type, element_id, fetch_missing=True, verbose=Fals
     exception, but at the moment just returns None
 
     >>> tmp_cache3 = mkdtemp()
-    >>> fetch_osm_element('relation', '10000000000', cache_directory=tmp_cache3)
+    >>> with patch.object(requests, 'get', side_effect=fake_requests_get):
+    ...     fetch_osm_element('relation', '10000000000', cache_directory=tmp_cache3)
 
     Remove the temporary directories created for these doctests:
     >>> for d in (tmp_cache, tmp_cache2, tmp_cache3):
@@ -2214,6 +2223,28 @@ def join_way_soup(ways):
     if endpoints_to_ways.number_of_endpoints():
         raise UnclosedBoundariesException(endpoints_to_ways.pretty())
     return closed_ways
+
+
+def fake_requests_get(url, params):
+    if url != 'http://overpass-api.de/api/interpreter':
+        msg = "Unknown URL {url} - maybe it needs to be faked in tests?"
+        raise Exception(msg.format(url=url))
+    m = re.search(r'(?sm)ref="(?P<id>.*?)" type="(?P<type>.*?)"', params['data'])
+    if not m:
+        print(params['data'])
+        msg = "Couldn't find the OSM object type and ID in the request"
+        raise Exception(msg)
+    osm_type = m.group('type')
+    osm_id = m.group('id')
+    filename = join(
+        dirname(__file__),
+        '..',
+        'mapit_global',
+        'tests',
+        'overpass-responses',
+        '{type}-{id}.xml'.format(type=osm_type, id=osm_id))
+    with open(filename, 'rb') as f:
+        return Mock(content=f.read())
 
 
 if __name__ == "__main__":
