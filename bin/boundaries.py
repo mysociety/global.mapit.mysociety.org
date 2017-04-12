@@ -16,13 +16,20 @@ from subprocess import Popen, PIPE
 import shutil  # noqa
 from tempfile import mkdtemp, NamedTemporaryFile  # noqa
 
-from django.utils.six import StringIO
+from django.utils import six
+from django.utils.six import BytesIO
 
 with open(os.path.join(
         os.path.dirname(__file__), '..', 'conf', 'general.yml')) as f:
     config = yaml.load(f)
 
 CACHE_VISITED = set()
+
+
+def get_bytes(some_kind_of_string):
+    if isinstance(some_kind_of_string, six.text_type):
+        return some_kind_of_string.encode('utf-8')
+    return some_kind_of_string
 
 
 # Suggested by http://stackoverflow.com/q/600268/223092
@@ -48,13 +55,15 @@ def mkdir_p(path):
 
     >>> os.chmod(new_directory, 0)
     >>> new_subdirectory = os.path.join(new_directory, "baz")
-    >>> mkdir_p(new_subdirectory) #doctest: +IGNORE_EXCEPTION_DETAIL
-    Traceback (most recent call last):
-      ...
-    OSError: [Errno 13] Permission denied: '/tmp/tmp64Q8MJ/foo/bar/baz'
+    >>> try:
+    ...    mkdir_p(new_subdirectory)
+    ... except OSError:
+    ...    print("Couldn't create the directory")
+    ...
+    Couldn't create the directory
 
     Remove the temporary directory created for these doctests:
-    >>> os.chmod(new_directory, 0755)
+    >>> os.chmod(new_directory, 0o755)
     >>> shutil.rmtree(test_directory)
     """
 
@@ -120,7 +129,7 @@ def get_remote(query_xml, filename):
     r = requests.get(url, params={'data': query_xml})
     r.raise_for_status()
     data = r.content
-    with open(filename, "w") as fp:
+    with open(filename, "wb") as fp:
         fp.write(data)
     return data
 
@@ -375,7 +384,7 @@ class OSMElement(object):
         pretty-printed with etree.tostring:
 
         >>> print(
-        ...     etree.tostring(OSMElement.xml_wrapping(),
+        ...     etree.tostring(OSMElement.xml_wrapping(), encoding='unicode',
         ...     pretty_print=True), end='') # doctest: +NORMALIZE_WHITESPACE
         <osm generator="mySociety Boundary Extractor" version="0.6">
           <note>The data included in this document is from www.openstreetmap.org.
@@ -403,7 +412,7 @@ class OSMElement(object):
         ...                'name:en': 'Venice'})
         >>> xe = etree.Element('example')
         >>> n.xml_add_tags(xe)
-        >>> print(etree.tostring(xe, pretty_print=True), end='')
+        >>> print(etree.tostring(xe, encoding='unicode', pretty_print=True), end='')
         <example>
           <tag k="name" v="Venezia"/>
           <tag k="name:en" v="Venice"/>
@@ -486,12 +495,15 @@ class Node(OSMElement):
         >>> result = n.to_xml(parent_element=parent)
         >>> parent is result
         True
-        >>> print(etree.tostring(parent, pretty_print=True), end='')
+        >>> print(etree.tostring(parent, encoding='unicode', pretty_print=True), end='')
         <example>
           <node id="1234" lat="51.2" lon="-0.2"/>
         </example>
         >>> full_result = n.to_xml()
-        >>> print(etree.tostring(full_result, pretty_print=True), end='') # doctest: +NORMALIZE_WHITESPACE
+        >>> print(etree.tostring(
+        ...    full_result,
+        ...    encoding='unicode',
+        ...    pretty_print=True), end='') # doctest: +NORMALIZE_WHITESPACE
         <osm generator="mySociety Boundary Extractor" version="0.6">
           <note>The data included in this document is from www.openstreetmap.org.
           It has there been collected by a large group of contributors.
@@ -839,7 +851,7 @@ class Way(OSMElement):
         >>> result = w.to_xml(xe)
         >>> result is xe
         True
-        >>> print(etree.tostring(xe, pretty_print=True), end='')
+        >>> print(etree.tostring(xe, encoding='unicode', pretty_print=True), end='')
         <example>
           <way id="76543">
             <nd ref="12"/>
@@ -856,7 +868,7 @@ class Way(OSMElement):
         >>> xe = etree.Element('example-with-nodes')
         >>> w.to_xml(xe, include_node_dependencies=True) #doctest: +ELLIPSIS
         <Element example-with-nodes at ...>
-        >>> print(etree.tostring(xe, pretty_print=True), end='')
+        >>> print(etree.tostring(xe, encoding='unicode', pretty_print=True), end='')
         <example-with-nodes>
           <node id="12" lat="52" lon="1"/>
           <node id="13" lat="52" lon="2"/>
@@ -875,7 +887,10 @@ class Way(OSMElement):
         And the final option is to include the OSM XML boilerplate as well:
 
         >>> result = w.to_xml()
-        >>> print(etree.tostring(result, pretty_print=True), end='') # doctest: +NORMALIZE_WHITESPACE
+        >>> print(etree.tostring(
+        ...     result,
+        ...     encoding='unicode',
+        ...     pretty_print=True), end='') # doctest: +NORMALIZE_WHITESPACE
         <osm generator="mySociety Boundary Extractor" version="0.6">
           <note>The data included in this document is from www.openstreetmap.org.
           It has there been collected by a large group of contributors.
@@ -1166,7 +1181,7 @@ class Relation(OSMElement):
         >>> result = r.to_xml(xe)
         >>> result is xe
         True
-        >>> print(etree.tostring(xe, pretty_print=True), end='')
+        >>> print(etree.tostring(xe, encoding='unicode', pretty_print=True), end='')
         <example>
           <relation id="98765">
             <member ref="76542" role="" type="node"/>
@@ -1186,7 +1201,7 @@ class Relation(OSMElement):
         >>> xe = etree.Element('example-with-nodes')
         >>> r.to_xml(xe, include_node_dependencies=True) #doctest: +ELLIPSIS
         <Element example-with-nodes at ...>
-        >>> print(etree.tostring(xe, pretty_print=True), end='')
+        >>> print(etree.tostring(xe, encoding='unicode', pretty_print=True), end='')
         <example-with-nodes>
           <node id="76542" lat="52" lon="0.3"/>
           <relation id="98765">
@@ -1206,7 +1221,10 @@ class Relation(OSMElement):
         And the final option is to include the OSM XML boilerplate as well:
 
         >>> result = r.to_xml()
-        >>> print(etree.tostring(result, pretty_print=True), end='') # doctest: +NORMALIZE_WHITESPACE
+        >>> print(etree.tostring(
+        ...     result,
+        ...     encoding='unicode',
+        ...     pretty_print=True), end='') # doctest: +NORMALIZE_WHITESPACE
         <osm generator="mySociety Boundary Extractor" version="0.6">
           <note>The data included in this document is from www.openstreetmap.org.
           It has there been collected by a large group of contributors.
@@ -1387,7 +1405,7 @@ class OSMXMLParser(ContentHandler):
     >>> parse_xml_string('''<?xml version="1.0" encoding="UTF-8"?>
     ... <osm version="0.6" generator="Overpass API">
     ...   <blah/>
-    ... </osm>''', fetch_missing=False)
+    ... </osm>''', fetch_missing=False) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
       ...
     UnexpectedElementException: Should never get a <blah> at the top level
@@ -1399,7 +1417,7 @@ class OSMXMLParser(ContentHandler):
     ...   <node id="123" lat="52" lon="0">
     ...     <foo>
     ...   </node>
-    ... </osm>''', fetch_missing=False)
+    ... </osm>''', fetch_missing=False) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
       ...
     UnexpectedElementException: Unhandled element <foo>
@@ -1411,7 +1429,7 @@ class OSMXMLParser(ContentHandler):
     ...   <node id="123" lat="52" lon="0">
     ...     <member type="way" ref="345" role=""/>
     ...   </node>
-    ... </osm>''', fetch_missing=False)
+    ... </osm>''', fetch_missing=False) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
       ...
     UnexpectedElementException: Didn't expect to find <member> in a <node>, can only be in <relation>
@@ -1421,7 +1439,7 @@ class OSMXMLParser(ContentHandler):
     >>> parse_xml_string('''<?xml version="1.0" encoding="UTF-8"?>
     ... <osm version="0.6" generator="Overpass API">
     ...   <member type="way" ref="345" role=""/>
-    ... </osm>''', fetch_missing=False)
+    ... </osm>''', fetch_missing=False) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
       ...
     UnexpectedElementException: Should never get a <member> at the top level
@@ -1433,7 +1451,7 @@ class OSMXMLParser(ContentHandler):
     ...   <node id="123" lat="52" lon="0">
     ...     <node>
     ...   </node>
-    ... </osm>''', fetch_missing=False)
+    ... </osm>''', fetch_missing=False) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
       ...
     UnexpectedElementException: Should never get a new <node> when still in a top-level element
@@ -1445,7 +1463,7 @@ class OSMXMLParser(ContentHandler):
     ...   <relation id="3123205528">
     ...     <member type="foo" ref="28421671" role="inner"/>
     ...   </relation>
-    ... </osm>''', fetch_missing=False)
+    ... </osm>''', fetch_missing=False) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
       ...
     Exception: Unknown member type 'foo' in <relation>
@@ -1468,7 +1486,7 @@ class OSMXMLParser(ContentHandler):
 
     Or you can request no caching in the first place:
 
-    parser = parse_xml_string(valid_xml, cache_in_memory=False, fetch_missing=False)
+    >>> parser = parse_xml_string(valid_xml, cache_in_memory=False, fetch_missing=False)
     >>> len(parser.known_nodes) + len(parser.known_ways) + len(parser.known_relations)
     0
 
@@ -1531,8 +1549,13 @@ class OSMXMLParser(ContentHandler):
     >>> r = parser[0]
     >>> r
     Relation(id="3123205528", members=1)
-    >>> r[0]
-    (Way(id="28421671", missing), u'inner')
+    >>> t = r[0]
+    >>> len(t)
+    2
+    >>> t[0]
+    Way(id="28421671", missing)
+    >>> print(t[1])
+    inner
 
     ... which can be fixed up with reconstruct_missing, which uses its
     in-memory cache:
@@ -1540,8 +1563,13 @@ class OSMXMLParser(ContentHandler):
     >>> still_missing = r.reconstruct_missing(parser, {})
     >>> still_missing
     []
-    >>> parser[0][0]
-    (Way(id="28421671", nodes=2), u'inner')
+    >>> t = parser[0][0]
+    >>> len(t)
+    2
+    >>> t[0]
+    Way(id="28421671", nodes=2)
+    >>> print(t[1])
+    inner
 
     If there are some missing elements which aren't in the XML at all,
     they can be fetched from the Overpass API if you have the
@@ -1830,7 +1858,8 @@ def parse_xml_minimal(s, element_handler):
     """Parse some OSM XML just to get type, id and tags
 
     >>> def output(type, id, tags):
-    ...     print("type:", type, "id:", id, "tags:", tags)
+    ...     print("type:", type, "id:", id, "tags:", end=' ')
+    ...     print('{{{0}}}'.format(', '.join("'{0}': '{1}'".format(*t) for t in tags.items())))
     >>> example_xml = '''<?xml version="1.0" encoding="UTF-8"?>
     ... <osm version="0.6" generator="Overpass API">
     ...   <node id="291974462" lat="55.0548850" lon="-2.9544991"/>
@@ -1849,9 +1878,9 @@ def parse_xml_minimal(s, element_handler):
     type: node id: 291974462 tags: {}
     type: node id: 312203528 tags: {}
     type: way id: 28421671 tags: {}
-    type: relation id: 3123205528 tags: {u'name:en': u'Whatever'}
+    type: relation id: 3123205528 tags: {'name:en': 'Whatever'}
     """
-    fp = StringIO(s)
+    fp = BytesIO(get_bytes(s))
     parser = MinimalOSMXMLParser(element_handler)
     xml.sax.parse(fp, parser)
 
@@ -1874,7 +1903,7 @@ def parse_xml(filename, fetch_missing=True):
     ... </osm>
     ... '''
     >>> with NamedTemporaryFile(delete=False) as ntf:
-    ...     ntf.write(example_xml)
+    ...     _ = ntf.write(example_xml.encode('utf-8'))
     >>> parser = parse_xml(ntf.name, fetch_missing=False)
     >>> os.remove(ntf.name)
     >>> for top_level_element in parser:
@@ -1891,7 +1920,7 @@ def parse_xml(filename, fetch_missing=True):
 
 
 def parse_xml_string(s, *parser_args, **parser_kwargs):
-    fp = StringIO(s)
+    fp = BytesIO(get_bytes(s))
     parser = OSMXMLParser(*parser_args, **parser_kwargs)
     xml.sax.parse(fp, parser)
     return parser
@@ -2102,7 +2131,7 @@ def join_way_soup(ways):
 
     It shouldn't be possible to join stalk_left to ne:
 
-    >>> join_way_soup([stalk_left, ne])
+    >>> join_way_soup([stalk_left, ne]) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     UnclosedBoundariesException
@@ -2110,7 +2139,7 @@ def join_way_soup(ways):
     And w and ne can be joined, but won't form a closed boundary (the
     bottom side of the square (s) is missing):
 
-    >>> join_way_soup([w, ne])
+    >>> join_way_soup([w, ne]) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     UnclosedBoundariesException
@@ -2147,7 +2176,7 @@ def join_way_soup(ways):
 
     But one closed polygon and an open one still fails:
 
-    >>> join_way_soup([s, ne, other_nw, other_se])
+    >>> join_way_soup([s, ne, other_nw, other_se]) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     UnclosedBoundariesException

@@ -90,9 +90,9 @@ def group_boundaries_into_polygons(outer_ways, inner_ways):
     >>> inners = [hole_in_big_square]
     >>> grouped = group_boundaries_into_polygons(outers, inners)
     >>> for p in grouped:
-    ...     print(p)
-    {'outer': [Way(id="1", nodes=5)], 'inner': [Way(id="2", nodes=5)]}
-    {'outer': [Way(id="3", nodes=5)], 'inner': []}
+    ...     print(sorted(p.items()))
+    [('inner', [Way(id="2", nodes=5)]), ('outer', [Way(id="1", nodes=5)])]
+    [('inner', []), ('outer', [Way(id="3", nodes=5)])]
 
     Any Way object that has too few points is ignored:
 
@@ -165,7 +165,7 @@ def kml_string(folder_name,
     ...                  {"some key": "some value",
     ...                   "foo": "bar"},
     ...                  [big_square, isolated_square],
-    ...                  [hole_in_big_square]), end='')
+    ...                  [hole_in_big_square]).decode('utf-8'), end='')
     <?xml version='1.0' encoding='utf-8'?>
     <kml xmlns="http://earth.google.com/kml/2.1">
       <Folder>
@@ -254,7 +254,7 @@ def get_kml_for_osm_element_no_fetch(element):
     >>> kml, bbox = get_kml_for_osm_element_no_fetch(big_square)
     >>> bbox
     [(49.0, 0.0, 53.0, 4.0)]
-    >>> print kml, # +doctest: ELLIPSIS
+    >>> print(kml.decode('utf-8'), end='') # +doctest: ELLIPSIS
     <?xml version='1.0' encoding='utf-8'?>
     <kml xmlns="http://earth.google.com/kml/2.1">
       <Folder>
@@ -288,7 +288,7 @@ def get_kml_for_osm_element_no_fetch(element):
     >>> unclosed_way = Way('1', nodes=[Node('10', latitude=53, longitude=0),
     ...                              Node('11', latitude=53, longitude=4),
     ...                              Node('12', latitude=49, longitude=4)])
-    >>> kml, bbox = get_kml_for_osm_element_no_fetch(unclosed_way)
+    >>> kml, bbox = get_kml_for_osm_element_no_fetch(unclosed_way) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
       ...
     UnclosedBoundariesException
@@ -339,7 +339,7 @@ def get_kml_for_osm_element(element_type, element_id):
     Cambridgeshire (which has a hole in it, which is Cambridge) with:
 
     >>> kml, bbox = get_kml_for_osm_element('relation', '295353')
-    >>> print(kml, end='') #doctest: +ELLIPSIS
+    >>> print(kml.decode('utf-8'), end='') #doctest: +ELLIPSIS
     <?xml version='1.0' encoding='utf-8'?>
     <kml xmlns="http://earth.google.com/kml/2.1">
       <Folder>
