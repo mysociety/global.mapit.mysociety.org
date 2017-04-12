@@ -11,4 +11,5 @@
 .sass-cache
 .venv
 .static
+/.tox
 .vagrant
