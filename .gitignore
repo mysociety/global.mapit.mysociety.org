@@ -5,7 +5,7 @@
 /conf/httpd.conf
 /conf/httpd.conf.deployed
 /web/down.html
-/data/cache
+/data/new-cache
 
 /.cache
 /.coverage
