@@ -1,5 +1,11 @@
 language: python
 
+addons:
+  postgresql: "9.6"
+  apt:
+    packages:
+      - postgresql-9.6-postgis-2.3
+
 matrix:
   include:
     - python: 2.7
@@ -20,6 +26,10 @@ install:
   - sed -r
     -e "s,(MAPIT_DB_USER:) 'mapit',\\1 'postgres',"
     conf/general.yml-example > conf/general.yml
+
+before_script:
+  - createdb -U postgres mapit
+  - psql -U postgres -d mapit -c 'CREATE EXTENSION postgis;'
 
 script:
   - tox
