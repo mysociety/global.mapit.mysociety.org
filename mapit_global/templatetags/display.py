@@ -15,6 +15,6 @@ def css_indent_class(area):
     """
     m = re.search(r'^O([01][0-9])$', area.type.code)
     if m:
-        return "area_level_%s" % m.group(1)
+        return "area_level_%d" % int(m.group(1))
     else:
         return ""
