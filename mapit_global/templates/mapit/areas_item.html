@@ -5,3 +5,8 @@
     <p>ID {{ area.id }}, {{ area.type.description }}
         <small>({{ area.type.code }})</small></p>
 </li>
+{% if show_map %}
+<script>
+mapit_areas.push({{ area.id }});
+</script>
+{% endif %}
