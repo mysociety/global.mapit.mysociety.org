@@ -11,7 +11,8 @@ from boundaries import join_way_soup, fetch_osm_element, UnclosedBoundariesExcep
 # The following are only used by doctests, hence noqa
 from boundaries import fake_requests_get # noqa
 import requests # noqa
-from mock import patch #noqa
+from mock import patch # noqa
+
 
 def ways_overlap(a, b):
     """Determines if two Way objects represent overlapping polygons
