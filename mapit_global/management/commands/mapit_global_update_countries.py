@@ -84,30 +84,19 @@ class Command(BaseCommand):
                 enclosing_country_codes.add(country_code_object.code)
         return tuple(sorted(enclosing_country_codes))
 
-    def get_country_from_codes(self, country_codes):
-        if not country_codes:
-            return None
-        if len(country_codes) > 1:
-            unique_country_code = '?'
-        else:
-            unique_country_code = next(iter(country_codes))
-        return self.code_to_country[unique_country_code]
+    def get_countries_from_codes(self, country_codes):
+        return [self.code_to_country[c] for c in country_codes]
 
     def set_country_on_all_areas(self):
-        error_messages = []
+        global_country = Country.objects.get(code='G')
         for area in Area.objects.filter(**self.generation_kwargs):
             print("Considering area:", area, area.id)
             enclosing_country_codes = self.get_enclosing_country_codes(area)
-            country = self.get_country_from_codes(enclosing_country_codes)
-            if country and country.code == '?':
-                msg = 'Multiple enclosing country codes {codes} found for area {name} with ID {id}'
-                error_messages.append(msg.format(
-                    codes=unicode(enclosing_country_codes),
-                    name=area.name,
-                    id=area.id))
-            area.country = country
+            countries = self.get_countries_from_codes(enclosing_country_codes)
+            area.country = global_country
+            area.countries.clear()
+            area.countries.add(*countries)
             area.save()
-        return error_messages
 
     @cached_property
     def code_to_country(self):
@@ -123,10 +112,6 @@ class Command(BaseCommand):
         with transaction.atomic():
             self.set_country_codes_for_countries()
             self.ensure_countries_exist()
-            error_messages = self.set_country_on_all_areas()
-            if error_messages:
-                print("Found the following errors while setting .country on all areas:")
-                for error_message in sorted(error_messages):
-                    print(' ', error_message.encode('utf-8'))
+            self.set_country_on_all_areas()
             if not options['commit']:
                 raise Exception('Rolling back since --commit was not specified')
