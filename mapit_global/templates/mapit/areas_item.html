@@ -1,12 +1,12 @@
 {% load display %}
 {% load i18n %}
-<li{% if indent_areas %} class="{{ area|css_indent_class }}"{% endif %}>
+<li class="js-map-hover{% if indent_areas %} {{ area|css_indent_class }}{% endif %}" id="area/{{ area.id }}">
     <h3><a href="{% url "mapit_index" %}area/{{ area.id }}.html">{{ area.name }}</a></h3>
     <p>ID {{ area.id }}, {{ area.type.description }}
         <small>({{ area.type.code }})</small></p>
 </li>
 {% if show_map %}
-<script>
-mapit_areas.push({{ area.id }});
-</script>
+    {% with area.id|slugify as area_id and area.name as area_name %}
+    {% include "mapit/map/json.html" with geojson_url="area/"|add:area_id geojson_text=area_name|add:" ("|add:area_id|add:")" %}
+    {% endwith %}
 {% endif %}
