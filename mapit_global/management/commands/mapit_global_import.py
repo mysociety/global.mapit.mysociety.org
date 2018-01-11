@@ -236,14 +236,17 @@ class Command(LabelCommand):
 
                 area_type = Type.objects.get(code=type_directory)
 
-                try:
-                    osm_code = Code.objects.get(type=code_type_osm,
-                                                code=osm_id,
-                                                area__generation_low__lte=current_generation,
-                                                area__generation_high__gte=current_generation)
-                except Code.DoesNotExist:
+                # Due to an import issue previously (where a mix of two OSM
+                # dumps meant there were multiple KML files for areas where
+                # their name/level had changed in the interim), there might
+                # be some duplicate OSM IDs in the database. Pick one.
+                osm_code = Code.objects.filter(type=code_type_osm,
+                                               code=osm_id,
+                                               area__generation_low__lte=current_generation,
+                                               area__generation_high__gte=current_generation
+                                               ).order_by('-area_id').first()
+                if osm_code is None:
                     verbose('    No area existed in the current generation with that OSM element type and ID')
-                    osm_code = None
 
                 was_the_same_in_current = False
 
