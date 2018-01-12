@@ -239,7 +239,7 @@ class Command(LabelCommand):
                 try:
                     osm_code = Code.objects.get(type=code_type_osm,
                                                 code=osm_id,
-                                                area__generation_high__lte=current_generation,
+                                                area__generation_low__lte=current_generation,
                                                 area__generation_high__gte=current_generation)
                 except Code.DoesNotExist:
                     verbose('    No area existed in the current generation with that OSM element type and ID')
