@@ -4,7 +4,6 @@ from contextlib import contextmanager
 from mock import Mock, patch
 import os
 from os.path import join, dirname
-import re
 
 from django.core.management import call_command
 from django.test import TestCase
@@ -317,7 +316,7 @@ class ImportCommandTests(TestCase):
         assert sorted(area.codes.values_list('type__code', 'code')) == \
             [('osm_attr_ref', 'source:XYZ'), ('osm_way', '1234')]
 
-    def test_alter_current_generation_fail_on_changed_boundary(self):
+    def test_new_generation_update_boundaries(self):
         call_command('loaddata', 'global.json')
         call_command('mapit_generation_create', '--commit', '--desc=Initial import')
         with example_files(
@@ -331,32 +330,23 @@ class ImportCommandTests(TestCase):
                 ]
         ) as tmp_dir:
             call_command('mapit_global_import', '--commit', tmp_dir)
-        # Activate that generation, create a new one and import the same data:
+        # Activate that generation, import the same data with flag:
         call_command('mapit_generation_activate', '--commit')
+        call_command('mapit_generation_create', '--commit', '--desc=Second import')
         with example_files(
                 'OCL',
                 [
                     ('way-1234-ambridge.kml',
                      get_example_kml(
                          {'name': 'Ambridge',
-                          'ref': 'source:ABC'},
+                          'ref': 'source:XYZ'},
                          include_big_square=True)),
                 ]
         ) as tmp_dir:
-            area = Area.objects.get()
-            current_generation = Generation.objects.current()
-            expected_msg = (
-                'The area for 1234 (osm_way) [{area_id}] already existed with '
-                'a different boundary in the current generation; using '
-                '--alter-current-generation to import this data would result '
-                'in a duplicate area in Generation {current_generation_id} '
-                '(active)').format(
-                    area_id=area.id,
-                    current_generation_id=current_generation.id)
-            with self.assertRaisesRegexp(
-                    Exception,
-                    re.escape(expected_msg)):
-                call_command('mapit_global_import', '--commit', '--alter-current-generation', tmp_dir)
+            call_command('mapit_global_import', '--commit', '--new-generation-update-boundaries', tmp_dir)
+        area = Area.objects.get()
+        assert sorted(area.codes.values_list('type__code', 'code')) == \
+            [('osm_attr_ref', 'source:XYZ'), ('osm_way', '1234')]
 
     def test_alter_current_generation_change_metadata(self):
         call_command('loaddata', 'global.json')

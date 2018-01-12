@@ -81,13 +81,37 @@ def get_iso639_2_table():
     return result
 
 
+def simplify(g):
+    return shapely.wkb.loads(bytes(g.simplify(tolerance=0).ewkb))
+
+
+def compare_polygons(area, new_geometry, verbose):
+    previous_geos_geometry = area.polygons.aggregate(Collect('polygon'))['polygon__collect']
+    if previous_geos_geometry is None:
+        verbose('    In the current generation, that area was empty - skipping')
+        return False
+    # Simplify it to make sure the polygons are valid:
+    previous_geos_geometry = simplify(previous_geos_geometry)
+    new_geos_geometry = simplify(new_geometry)
+    if previous_geos_geometry.almost_equals(new_geos_geometry, decimal=7):
+        verbose('    The boundary was identical in the previous generation')
+        return True
+    verbose('    In the current generation, the boundary was different')
+    return False
+
+
 class Command(LabelCommand):
     help = 'Import OSM boundary data from KML files'
     label = 'KML-DIRECTORY'
 
     def add_arguments(self, parser):
         super(Command, self).add_arguments(parser)
-        parser.add_argument(
+        group = parser.add_mutually_exclusive_group()
+        group.add_argument(
+            '--new-generation-update-boundaries',
+            action='store_true',
+            help='Import to a new inactive generation, and update boundaries of any matching areas')
+        group.add_argument(
             '--alter-current-generation',
             action='store_true',
             help='Rather than importing to a new inactive generation, update the current, active generation')
@@ -142,6 +166,7 @@ class Command(LabelCommand):
         skipping = bool(skip_up_to)
 
         for type_directory in sorted(glob(mapit_type_glob)):
+            area_type = Type.objects.get(code=type_directory)
 
             verbose("Loading type " + type_directory)
 
@@ -234,8 +259,6 @@ class Command(LabelCommand):
                         continue
                     g = fixed_multipolygon.ogr
 
-                area_type = Type.objects.get(code=type_directory)
-
                 # Due to an import issue previously (where a mix of two OSM
                 # dumps meant there were multiple KML files for areas where
                 # their name/level had changed in the interim), there might
@@ -245,41 +268,23 @@ class Command(LabelCommand):
                                                area__generation_low__lte=current_generation,
                                                area__generation_high__gte=current_generation
                                                ).order_by('-area_id').first()
-                if osm_code is None:
-                    verbose('    No area existed in the current generation with that OSM element type and ID')
-
-                was_the_same_in_current = False
 
                 if osm_code:
                     m = osm_code.area
-
-                    # First, we need to check if the polygons are
-                    # still the same as in the previous generation:
-                    previous_geos_geometry = m.polygons.aggregate(Collect('polygon'))['polygon__collect']
-                    if previous_geos_geometry is None:
-                        verbose('    In the current generation, that area was empty - skipping')
+                    if options['alter_current_generation'] or options['new_generation_update_boundaries']:
+                        use_current_area = True
                     else:
-                        # Simplify it to make sure the polygons are valid:
-                        previous_geos_geometry = shapely.wkb.loads(
-                            bytes(previous_geos_geometry.simplify(tolerance=0).ewkb))
-                        new_geos_geometry = shapely.wkb.loads(bytes(g.geos.simplify(tolerance=0).ewkb))
-                        if previous_geos_geometry.almost_equals(new_geos_geometry, decimal=7):
-                            was_the_same_in_current = True
-                        else:
-                            verbose('    In the current generation, the boundary was different')
-                            if options['alter_current_generation']:
-                                msg = 'The area for {code} already existed with a different boundary in ' \
-                                      'the current generation; using --alter-current-generation to import ' \
-                                      'this data would result in a duplicate area in {generation}'
-                                raise Exception(msg.format(code=osm_code, generation=current_generation))
+                        # We need to check if the polygons are still the same as in the previous generation
+                        use_current_area = compare_polygons(m, g.geos, verbose)
+                else:
+                    verbose('    No area existed in the current generation with that OSM element type and ID')
+                    use_current_area = False
 
-                if was_the_same_in_current:
+                if use_current_area:
                     # Bring the area up to date, and extend the high generation to the new one
-                    verbose('    The boundary was identical in the previous generation; raising generation_high')
                     m.name = name
                     m.type = area_type
                     m.generation_high = new_generation
-
                 else:
                     # Otherwise, create a completely new area:
                     m = Area(
@@ -338,12 +343,12 @@ class Command(LabelCommand):
                         # No `ref` found in KML data, remove any existing `ref` from area.
                         m.codes.filter(type=osm_attr_ref).delete()
 
-                    # If the boundary was the same, the old Code
+                    # If the boundary was the same, or reusing, the old Code
                     # object will still be pointing to the same Area,
                     # which just had its generation_high incremented.
                     # In every other case, there's a new area object,
                     # so create a new Code and save it:
-                    if not was_the_same_in_current:
+                    if not use_current_area:
                         new_code = Code(area=m, type=code_type_osm, code=osm_id)
                         new_code.save()
                     save_polygons({'dummy': (m, poly)})
