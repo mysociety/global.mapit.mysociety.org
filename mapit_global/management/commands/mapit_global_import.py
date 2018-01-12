@@ -274,8 +274,10 @@ class Command(LabelCommand):
                                 raise Exception(msg.format(code=osm_code, generation=current_generation))
 
                 if was_the_same_in_current:
-                    # Extend the high generation to the new one:
+                    # Bring the area up to date, and extend the high generation to the new one
                     verbose('    The boundary was identical in the previous generation; raising generation_high')
+                    m.name = name
+                    m.type = area_type
                     m.generation_high = new_generation
 
                 else:
