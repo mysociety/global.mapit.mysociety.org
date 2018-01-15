@@ -89,7 +89,7 @@ class Command(BaseCommand):
 
     def set_country_on_all_areas(self):
         global_country = Country.objects.get(code='G')
-        for area in Area.objects.filter(**self.generation_kwargs):
+        for area in Area.objects.filter(**self.generation_kwargs).iterator():
             print("Considering area:", area, area.id)
             enclosing_country_codes = self.get_enclosing_country_codes(area)
             countries = self.get_countries_from_codes(enclosing_country_codes)
