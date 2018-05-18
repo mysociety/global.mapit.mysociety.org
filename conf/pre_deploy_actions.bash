@@ -23,8 +23,7 @@ fi
 source $virtualenv_activate
 
 # Upgrade pip to a secure version
-curl --silent --location https://bootstrap.pypa.io/get-pip.py | python - 'pip<9'
-pip install distribute==0.7.3
+curl -L -s https://raw.github.com/mysociety/commonlib/master/bin/get_pip.bash | bash
 # Improve SSL behaviour
 pip install pyOpenSSL ndg-httpsclient pyasn1
 
