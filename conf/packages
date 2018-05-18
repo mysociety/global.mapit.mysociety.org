@@ -1,4 +1,4 @@
-libgdal1
+libgdal1 | libgdal20
 memcached
 python-virtualenv
 libapache2-mod-wsgi
