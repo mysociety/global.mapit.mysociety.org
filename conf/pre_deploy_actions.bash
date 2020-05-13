@@ -36,5 +36,11 @@ find . -name '*.pyc' -delete
 # Compile CSS
 mapit_make_css
 
+# Make a copy of the previous static directory to maintain any cached links
+if [[ ! -d .static && -d ../global.mapit.mysociety.org/.static ]]
+then
+    cp --archive ../global.mapit.mysociety.org/.static .static
+fi
+
 # gather all the static files in one place
 python manage.py collectstatic --noinput --link
