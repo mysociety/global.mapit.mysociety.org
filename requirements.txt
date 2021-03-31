@@ -1,4 +1,4 @@
 Django==1.11.28
 psycopg2 >= 2.5.4
 -e git://github.com/mysociety/mapit.git@master#egg=django-mapit
-lxml==3.7.3
+lxml==4.6.3
