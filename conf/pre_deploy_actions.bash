@@ -11,19 +11,22 @@ cd "$(dirname $BASH_SOURCE)"/..
 PYTHONDONTWRITEBYTECODE=""
 
 # create the virtual environment; we always want system packages
-virtualenv_args="--system-site-packages"
 virtualenv_dir='.venv'
 virtualenv_activate="$virtualenv_dir/bin/activate"
 
 if [ ! -f "$virtualenv_activate" ]
 then
-    virtualenv $virtualenv_args $virtualenv_dir
+    python3 -m venv $virtualenv_dir
 fi
 
 source $virtualenv_activate
 
-# Upgrade pip to a secure version
-curl -L -s https://raw.github.com/mysociety/commonlib/master/bin/get_pip.bash | bash
+# Install wheel
+pip install wheel
+
+# Install the correct version of GDAL
+pip install gdal==$(gdal-config --version)
+
 # Improve SSL behaviour
 pip install pyOpenSSL ndg-httpsclient pyasn1
 

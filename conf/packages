@@ -1,14 +1,8 @@
-libgdal1 | libgdal20
 memcached
-python-virtualenv
-libapache2-mod-wsgi
+libapache2-mod-wsgi-py3
 
-python-dev
-libssl-dev
 libffi-dev
-
-python-psycopg2
-python-shapely
-python-yaml
-python-memcache
-python-gdal
+libgdal-dev
+libpq-dev
+libssl-dev
+python3-dev
