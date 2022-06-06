@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from contextlib import contextmanager
 from mock import Mock, patch
 import os

@@ -27,7 +27,6 @@ from django.core.management.base import LabelCommand
 # from django.contrib.gis.utils import LayerMapping
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.db.models import Collect
-from django.utils import six
 from django.utils.encoding import smart_str, smart_text
 
 import requests
@@ -64,13 +63,8 @@ def get_iso639_2_table():
     result = []
     url = "http://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt"
     r = requests.get(url, stream=True, headers={'User-Agent': 'Mozilla/5.0'})
-    if six.PY2:
-        csv_source = r.iter_lines()
-    else:
-        csv_source = codecs.iterdecode(r.iter_lines(), 'utf-8')
+    csv_source = codecs.iterdecode(r.iter_lines(), 'utf-8')
     for row in csv.reader(csv_source, delimiter='|'):
-        if six.PY2:
-            row = [cell.decode('utf-8-sig') for cell in row]
         bibliographic = [row[0], row[2], row[3], row[4]]
         result_row = LanguageCodes._make(make_missing_none(s) for s in bibliographic)
         result.append(result_row)
@@ -207,7 +201,7 @@ class Command(LabelCommand):
                 kml_data = KML()
                 xml.sax.parse(smart_str(kml_filename), kml_data)
 
-                useful_names = [n for n in kml_data.data.keys() if not n.startswith('Boundaries for')]
+                useful_names = [n for n in list(kml_data.data.keys()) if not n.startswith('Boundaries for')]
                 if len(useful_names) == 0:
                     raise Exception("No useful names found in KML data")
                 elif len(useful_names) > 1:
@@ -308,7 +302,7 @@ class Command(LabelCommand):
 
                     old_lang_codes = set(n.type.code for n in m.names.all())
 
-                    for k, translated_name in kml_data.data[name].items():
+                    for k, translated_name in list(kml_data.data[name].items()):
                         language_name = None
                         if k == 'name':
                             lang = 'default'

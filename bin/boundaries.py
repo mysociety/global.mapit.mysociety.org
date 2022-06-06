@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+
 
 import errno
 from mock import Mock, patch # noqa
@@ -92,7 +92,7 @@ def get_query_relation_and_dependents(element_type, element_id):
 
 def get_query_relations_and_ways(required_tags):
     has_kv = "\n".join('      <has-kv k="%s" modv="" v="%s"/>' % (k, v)
-                       for k, v in required_tags.items())
+                       for k, v in list(required_tags.items()))
     return """<osm-script timeout="3600">
   <union into="_">
     <query into="_" type="relation">

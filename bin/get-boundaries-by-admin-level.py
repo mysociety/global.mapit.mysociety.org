@@ -4,7 +4,7 @@
 # This script fetches all administrative and political boundaries from
 # OpenStreetMap and writes them out as KML.
 
-from __future__ import print_function
+
 
 import os
 import re
@@ -41,7 +41,7 @@ mapit_type_to_tags = {
     'OIC': {'boundary': 'political', 'political_division': 'insular_council'},
     'OEC': {'boundary': 'political', 'political_division': 'euro_const'},
     'OCA': {'boundary': 'political', 'political_division': 'canton'},
-    'OCL': {'boundary': 'political', 'political_division': u'circonscription_législative'},
+    'OCL': {'boundary': 'political', 'political_division': 'circonscription_législative'},
     'OPC': {'boundary': 'political', 'political_division': 'parl_const'},
     'OCD': {'boundary': 'political', 'political_division': 'county_division'},
     'OWA': {'boundary': 'political', 'political_division': 'ward'},
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     dir = os.path.dirname(os.path.abspath(__file__))
     data_dir = os.path.join(dir, '..', 'data')
 
-    if start_mapit_type not in mapit_type_to_tags.keys():
+    if start_mapit_type not in list(mapit_type_to_tags.keys()):
         print("The type %s isn't known" % (start_mapit_type,), file=sys.stderr)
         print("The known types are:", file=sys.stderr)
         for mapit_type in sorted(mapit_type_to_tags.keys()):
@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
         def handle_top_level_element(element_type, element_id, tags):
 
-            for required_key, required_value in required_tags.items():
+            for required_key, required_value in list(required_tags.items()):
 
                 if required_key not in tags:
                     return

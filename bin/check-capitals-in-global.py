@@ -11,7 +11,7 @@
 #   pip install requests
 #   pip install SPARQLWrapper
 
-from __future__ import print_function
+
 
 from collections import defaultdict
 import json
@@ -21,11 +21,7 @@ import time
 from SPARQLWrapper import SPARQLWrapper, JSON
 
 from django.utils.encoding import smart_str
-from django.utils import six
-if six.PY2:
-    from urllib import unquote as unquote_to_bytes
-else:
-    from urllib.parse import unquote_to_bytes
+from urllib.parse import unquote_to_bytes
 
 
 def name_from_url(url):
@@ -76,7 +72,7 @@ if __name__ == '__main__':
         capital = name_from_url(result['capital']['value'])
         coordinates_for_places[(capital, country)].append((lon, lat))
 
-    sorted_mapping = sorted(coordinates_for_places.items(),
+    sorted_mapping = sorted(list(coordinates_for_places.items()),
                             key=lambda t: (t[0][1], t[0][0]))
 
     total_capitals = 0
@@ -92,7 +88,7 @@ if __name__ == '__main__':
         print("  browse on MapIt Global:", mapit_url + ".html")
         r = requests.get(mapit_url, headers={'User-Agent': 'TestingCapitals/1.0'})
         mapit_result = json.loads(r.text)
-        area_values = [a for k, a in mapit_result.items() if k != "debug_db_queries"]
+        area_values = [a for k, a in list(mapit_result.items()) if k != "debug_db_queries"]
         level_2_areas = [a for a in area_values if a['type'] == 'O02']
         if level_2_areas:
             print("  In these level 2 areas:")
