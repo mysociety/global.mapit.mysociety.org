@@ -19,21 +19,13 @@ from subprocess import Popen, PIPE
 import shutil  # noqa
 from tempfile import mkdtemp, NamedTemporaryFile  # noqa
 
-from django.utils import six
-from django.utils.six import BytesIO
+from io import StringIO
 
 with open(os.path.join(
         os.path.dirname(__file__), '..', 'conf', 'general.yml')) as f:
     config = yaml.load(f)
 
 CACHE_VISITED = set()
-
-
-def get_bytes(some_kind_of_string):
-    if isinstance(some_kind_of_string, six.text_type):
-        return some_kind_of_string.encode('utf-8')
-    return some_kind_of_string
-
 
 # Suggested by http://stackoverflow.com/q/600268/223092
 def mkdir_p(path):
@@ -112,7 +104,7 @@ def get_from_overpass(query_xml, filename):
     else:
         if not os.path.exists(filename):
             return get_remote(query_xml, filename)
-        return open(filename).read()
+        return open(filename, encoding='utf-8').read()
 
 
 def get_osm3s(query_xml):
@@ -132,7 +124,7 @@ def get_remote(query_xml, filename):
     r = requests.get(url, params={'data': query_xml})
     r.raise_for_status()
     data = r.content
-    with open(filename, "wb") as fp:
+    with open(filename, "w") as fp:
         fp.write(data)
     return data
 
@@ -1886,7 +1878,7 @@ def parse_xml_minimal(s, element_handler):
     type: way id: 28421671 tags: {}
     type: relation id: 3123205528 tags: {'name:en': 'Whatever'}
     """
-    fp = BytesIO(get_bytes(s))
+    fp = StringIO(s)
     parser = MinimalOSMXMLParser(element_handler)
     xml.sax.parse(fp, parser)
 
@@ -1926,7 +1918,7 @@ def parse_xml(filename, fetch_missing=True):
 
 
 def parse_xml_string(s, *parser_args, **parser_kwargs):
-    fp = BytesIO(get_bytes(s))
+    fp = StringIO(s)
     parser = OSMXMLParser(*parser_args, **parser_kwargs)
     xml.sax.parse(fp, parser)
     return parser

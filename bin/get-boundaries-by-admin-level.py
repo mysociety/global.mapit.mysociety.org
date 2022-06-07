@@ -117,7 +117,7 @@ if __name__ == '__main__':
                         return
 
                     print("      Writing KML to", smart_str(filename))
-                    with open(filename, "wb") as fp:
+                    with open(filename, "w") as fp:
                         fp.write(kml)
 
             except UnclosedBoundariesException:
