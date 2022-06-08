@@ -231,3 +231,5 @@ LOGGING = {
 }
 
 DATE_FORMAT = 'j F Y'
+
+DEFAULT_AUTO_FIELD = config.get('DEFAULT_AUTO_FIELD', 'django.db.models.AutoField')
