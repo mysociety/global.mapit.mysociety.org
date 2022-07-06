@@ -1,7 +1,7 @@
 Django==3.2.14
 psycopg2 >= 2.5.4
 -e git+https://github.com/mysociety/mapit.git@master#egg=django-mapit
-lxml==4.6.5
+lxml==4.9.1
 Shapely==1.7.1
 PyYAML==5.4.1
 python-memcached==1.59
