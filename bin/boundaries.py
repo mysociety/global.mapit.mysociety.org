@@ -385,7 +385,7 @@ class OSMElement(object):
           <note>The data included in this document is from www.openstreetmap.org.
           It has there been collected by a large group of contributors.
           For individual attribution of each item please refer to
-          http://www.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
+          https://api.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
         </osm>
         """
 
@@ -396,7 +396,7 @@ class OSMElement(object):
             "The data included in this document is from www.openstreetmap.org. "
             "It has there been collected by a large group of contributors. "
             "For individual attribution of each item please refer to "
-            "http://www.openstreetmap.org/api/0.6/[node|way|relation]/#id/history")
+            "https://api.openstreetmap.org/api/0.6/[node|way|relation]/#id/history")
         return osm
 
     def xml_add_tags(self, xml_element):
@@ -503,7 +503,7 @@ class Node(OSMElement):
           <note>The data included in this document is from www.openstreetmap.org.
           It has there been collected by a large group of contributors.
           For individual attribution of each item please refer to
-          http://www.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
+          https://api.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
           <node id="1234" lat="51.2" lon="-0.2"/>
         </osm>
         """
@@ -890,7 +890,7 @@ class Way(OSMElement):
           <note>The data included in this document is from www.openstreetmap.org.
           It has there been collected by a large group of contributors.
           For individual attribution of each item please refer to
-          http://www.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
+          https://api.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
           <way id="76543">
             <nd ref="12"/>
             <nd ref="13"/>
@@ -1224,7 +1224,7 @@ class Relation(OSMElement):
           <note>The data included in this document is from www.openstreetmap.org.
           It has there been collected by a large group of contributors.
           For individual attribution of each item please refer to
-          http://www.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
+          https://api.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
           <relation id="98765">
             <member ref="76542" role="" type="node"/>
             <member ref="76543" role="" type="way"/>
