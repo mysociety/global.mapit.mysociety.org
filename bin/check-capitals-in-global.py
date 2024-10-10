@@ -11,8 +11,6 @@
 #   pip install requests
 #   pip install SPARQLWrapper
 
-
-
 from collections import defaultdict
 import json
 import re

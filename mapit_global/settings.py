@@ -4,6 +4,8 @@ from .mapit_settings import *  # noqa
 
 # Update a couple of things to suit our changes
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 # Insert our project app before mapit so that the templates take precedence
 INSTALLED_APPS.insert(INSTALLED_APPS.index('mapit'), 'mapit_global')
 ROOT_URLCONF = 'mapit_global.urls'

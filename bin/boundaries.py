@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-
-
 import errno
 from mock import Mock, patch # noqa
 import requests
@@ -23,9 +21,10 @@ from io import StringIO
 
 with open(os.path.join(
         os.path.dirname(__file__), '..', 'conf', 'general.yml')) as f:
-    config = yaml.load(f)
+    config = yaml.load(f, Loader=yaml.SafeLoader)
 
 CACHE_VISITED = set()
+
 
 # Suggested by http://stackoverflow.com/q/600268/223092
 def mkdir_p(path):
@@ -123,7 +122,7 @@ def get_remote(query_xml, filename):
     url = config['OVERPASS_SERVER']
     r = requests.get(url, params={'data': query_xml})
     r.raise_for_status()
-    data = r.content
+    data = r.text
     with open(filename, "w") as fp:
         fp.write(data)
     return data
@@ -381,13 +380,10 @@ class OSMElement(object):
         >>> print(
         ...     etree.tostring(OSMElement.xml_wrapping(), encoding='unicode',
         ...     pretty_print=True), end='') # doctest: +NORMALIZE_WHITESPACE
-        <osm generator="mySociety Boundary Extractor" version="0.6">
-          <note>The data included in this document is from www.openstreetmap.org.
-          It has there been collected by a large group of contributors.
-          For individual attribution of each item please refer to
-          https://api.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
+        <osm version="0.6" generator="mySociety Boundary Extractor">
+          <note>The data included in this document is from www.openstreetmap.org. It has there been collected by a large group of contributors. For individual attribution of each item please refer to https://api.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
         </osm>
-        """
+        """  # noqa: E501
 
         osm = etree.Element("osm", attrib={"version": "0.6",
                                            "generator": "mySociety Boundary Extractor"})
@@ -499,14 +495,11 @@ class Node(OSMElement):
         ...    full_result,
         ...    encoding='unicode',
         ...    pretty_print=True), end='') # doctest: +NORMALIZE_WHITESPACE
-        <osm generator="mySociety Boundary Extractor" version="0.6">
-          <note>The data included in this document is from www.openstreetmap.org.
-          It has there been collected by a large group of contributors.
-          For individual attribution of each item please refer to
-          https://api.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
+        <osm version="0.6" generator="mySociety Boundary Extractor">
+          <note>The data included in this document is from www.openstreetmap.org. It has there been collected by a large group of contributors. For individual attribution of each item please refer to https://api.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
           <node id="1234" lat="51.2" lon="-0.2"/>
         </osm>
-        """
+        """  # noqa: E501
 
         if parent_element is None:
             parent_element = OSMElement.xml_wrapping()
@@ -886,11 +879,8 @@ class Way(OSMElement):
         ...     result,
         ...     encoding='unicode',
         ...     pretty_print=True), end='') # doctest: +NORMALIZE_WHITESPACE
-        <osm generator="mySociety Boundary Extractor" version="0.6">
-          <note>The data included in this document is from www.openstreetmap.org.
-          It has there been collected by a large group of contributors.
-          For individual attribution of each item please refer to
-          https://api.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
+        <osm version="0.6" generator="mySociety Boundary Extractor">
+          <note>The data included in this document is from www.openstreetmap.org. It has there been collected by a large group of contributors. For individual attribution of each item please refer to https://api.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
           <way id="76543">
             <nd ref="12"/>
             <nd ref="13"/>
@@ -900,7 +890,7 @@ class Way(OSMElement):
             <tag k="boundary" v="administrative"/>
           </way>
         </osm>
-        """
+        """  # noqa: E501
 
         if parent_element is None:
             parent_element = OSMElement.xml_wrapping()
@@ -1179,13 +1169,13 @@ class Relation(OSMElement):
         >>> print(etree.tostring(xe, encoding='unicode', pretty_print=True), end='')
         <example>
           <relation id="98765">
-            <member ref="76542" role="" type="node"/>
-            <member ref="76543" role="" type="way"/>
-            <member ref="98764" role="" type="relation"/>
-            <member ref="98764" role="" type="way"/>
-            <member ref="76545" role="inner" type="way"/>
-            <member ref="87654" role="inner" type="relation"/>
-            <member ref="76546" role="" type="way"/>
+            <member type="node" ref="76542" role=""/>
+            <member type="way" ref="76543" role=""/>
+            <member type="relation" ref="98764" role=""/>
+            <member type="way" ref="98764" role=""/>
+            <member type="way" ref="76545" role="inner"/>
+            <member type="relation" ref="87654" role="inner"/>
+            <member type="way" ref="76546" role=""/>
             <tag k="admin_level" v="2"/>
             <tag k="boundary" v="administrative"/>
           </relation>
@@ -1200,13 +1190,13 @@ class Relation(OSMElement):
         <example-with-nodes>
           <node id="76542" lat="52" lon="0.3"/>
           <relation id="98765">
-            <member ref="76542" role="" type="node"/>
-            <member ref="76543" role="" type="way"/>
-            <member ref="98764" role="" type="relation"/>
-            <member ref="98764" role="" type="way"/>
-            <member ref="76545" role="inner" type="way"/>
-            <member ref="87654" role="inner" type="relation"/>
-            <member ref="76546" role="" type="way"/>
+            <member type="node" ref="76542" role=""/>
+            <member type="way" ref="76543" role=""/>
+            <member type="relation" ref="98764" role=""/>
+            <member type="way" ref="98764" role=""/>
+            <member type="way" ref="76545" role="inner"/>
+            <member type="relation" ref="87654" role="inner"/>
+            <member type="way" ref="76546" role=""/>
             <tag k="admin_level" v="2"/>
             <tag k="boundary" v="administrative"/>
           </relation>
@@ -1220,19 +1210,16 @@ class Relation(OSMElement):
         ...     result,
         ...     encoding='unicode',
         ...     pretty_print=True), end='') # doctest: +NORMALIZE_WHITESPACE
-        <osm generator="mySociety Boundary Extractor" version="0.6">
-          <note>The data included in this document is from www.openstreetmap.org.
-          It has there been collected by a large group of contributors.
-          For individual attribution of each item please refer to
-          https://api.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
+        <osm version="0.6" generator="mySociety Boundary Extractor">
+          <note>The data included in this document is from www.openstreetmap.org. It has there been collected by a large group of contributors. For individual attribution of each item please refer to https://api.openstreetmap.org/api/0.6/[node|way|relation]/#id/history</note>
           <relation id="98765">
-            <member ref="76542" role="" type="node"/>
-            <member ref="76543" role="" type="way"/>
-            <member ref="98764" role="" type="relation"/>
-            <member ref="98764" role="" type="way"/>
-            <member ref="76545" role="inner" type="way"/>
-            <member ref="87654" role="inner" type="relation"/>
-            <member ref="76546" role="" type="way"/>
+            <member type="node" ref="76542" role=""/>
+            <member type="way" ref="76543" role=""/>
+            <member type="relation" ref="98764" role=""/>
+            <member type="way" ref="98764" role=""/>
+            <member type="way" ref="76545" role="inner"/>
+            <member type="relation" ref="87654" role="inner"/>
+            <member type="way" ref="76546" role=""/>
             <tag k="admin_level" v="2"/>
             <tag k="boundary" v="administrative"/>
           </relation>
@@ -1248,7 +1235,7 @@ class Relation(OSMElement):
         Traceback (most recent call last):
           ...
         Exception: Trying out output a missing node %s as XML
-        """
+        """  # noqa: E501
 
         if parent_element is None:
             parent_element = OSMElement.xml_wrapping()
@@ -2235,8 +2222,8 @@ def fake_requests_get(url, params):
         'tests',
         'overpass-responses',
         '{type}-{id}.xml'.format(type=osm_type, id=osm_id))
-    with open(filename, 'rb') as f:
-        return Mock(content=f.read())
+    with open(filename, 'r') as f:
+        return Mock(text=f.read())
 
 
 if __name__ == "__main__":

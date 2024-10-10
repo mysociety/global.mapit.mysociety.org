@@ -27,7 +27,7 @@ from django.core.management.base import LabelCommand
 # from django.contrib.gis.utils import LayerMapping
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.db.models import Collect
-from django.utils.encoding import smart_str, smart_text
+from django.utils.encoding import smart_str
 
 import requests
 import shapely.wkb
@@ -39,7 +39,7 @@ from mapit.management.command_utils import fix_invalid_geos_multipolygon
 
 def make_missing_none(s):
     """If s is empty (considering Unicode spaces) return None, else s"""
-    if re.search('(?uis)^\s*$', s):
+    if re.search(r'(?uis)^\s*$', s):
         return None
     else:
         return s
@@ -125,7 +125,7 @@ class Command(LabelCommand):
 
         os.chdir(directory_name)
 
-        mapit_type_glob = smart_text("[A-Z0-9][A-Z0-9][A-Z0-9]")
+        mapit_type_glob = smart_str("[A-Z0-9][A-Z0-9][A-Z0-9]")
 
         if not glob(mapit_type_glob):
             raise Exception(

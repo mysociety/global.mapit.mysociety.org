@@ -48,10 +48,10 @@ if DEBUG:
     CACHE_MIDDLEWARE_SECONDS = 0
 else:
     try:
-        import memcache  # noqa
+        import pylibmc  # noqa
         CACHES = {
             'default': {
-                'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+                'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
                 'LOCATION': '127.0.0.1:11211',
                 'TIMEOUT': 86400,
             }
@@ -119,10 +119,6 @@ else:
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
 USE_I18N = True
-
-# If you set this to False, Django will not format dates, numbers and
-# calendars according to the current locale.
-USE_L10N = True
 
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = False

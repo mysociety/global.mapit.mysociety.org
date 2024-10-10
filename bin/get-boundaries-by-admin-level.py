@@ -4,8 +4,6 @@
 # This script fetches all administrative and political boundaries from
 # OpenStreetMap and writes them out as KML.
 
-
-
 import os
 import re
 import sys

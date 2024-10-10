@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-
-
 import sys
 from lxml import etree
 from shapely.geometry import Polygon

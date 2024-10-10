@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-
-
 import re
 import sys
 
@@ -32,7 +30,7 @@ def get_country_name(s):
 
 
 def make_missing_none(s):
-    if re.search('(?uis)^\s*N/A\s*$', s):
+    if re.search(r'(?uis)^\s*N/A\s*$', s):
         return None
     else:
         return s

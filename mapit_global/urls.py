@@ -1,7 +1,9 @@
-from django.conf.urls import include, url
+from django.urls import include, path
 from django.contrib import admin
+from django.views.generic.base import RedirectView
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^', include('mapit.urls')),
+    path('admin', RedirectView.as_view(url='admin/', permanent=True)),
+    path('admin/', admin.site.urls),
+    path('', include('mapit.urls')),
 ]
