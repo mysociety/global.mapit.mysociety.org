@@ -1,6 +1,5 @@
 import os
 import yaml
-from project.utils import skip_unreadable_post
 
 # Path to here is something like
 # .../<repo>/<project_name>/settings.py
@@ -14,7 +13,7 @@ PARENT_DIR = os.path.dirname(BASE_DIR)
 # Django settings.py file.
 try:
     with open(os.path.join(BASE_DIR, 'conf', 'general.yml'), 'r') as fp:
-        config = yaml.load(fp, Loader=yaml.SafeLoader)
+        config = yaml.safe_load(fp)
 except:
     config = {}
 
@@ -204,27 +203,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'mapit',
 ]
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse',
-        },
-        'skip_unreadable_posts': {
-            '()': 'django.utils.log.CallbackFilter',
-            'callback': skip_unreadable_post,
-        },
-    },
-    'handlers': {
-        'mail_admins': {
-            'filters': ['require_debug_false', 'skip_unreadable_posts'],
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler'
-        },
-    },
-}
 
 DATE_FORMAT = 'j F Y'
 

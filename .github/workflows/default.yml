@@ -9,7 +9,7 @@ jobs:
 
     services:
       postgres:
-        image: postgis/postgis:13-3.2
+        image: postgis/postgis:15-3.5
         env:
           POSTGRES_PASSWORD: mapit
         ports:
@@ -29,14 +29,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10"]
-        thing-to-test: [flake8, py310]
+        python-version: ["3.13"]
+        thing-to-test: [flake8, py313]
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Set up python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -48,7 +48,7 @@ jobs:
         pip install tox tox-gh-actions
 
     - name: Install GDAL
-      run: sudo apt-get install gdal-bin
+      run: sudo apt-get install gdal-bin libmemcached-dev
 
     - name: Set up config
       run: |
